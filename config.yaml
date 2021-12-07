@@ -1,0 +1,20 @@
+runner:
+  general:
+    dry_run: true
+
+  pred_thresholds:
+    title_thresh: 99
+    desc_thresh: 90
+
+  folders:
+    cache: data
+    tatort_store_prefix: ""
+    final: '0-fertig'
+    output: '1-new'
+    error: '2-check'
+
+  mediathek:
+    query_size: 100
+
+sheduler:
+  null

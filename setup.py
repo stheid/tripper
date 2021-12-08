@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='tripper',
-    version='0.0.1',
+    version='0.1.0',
     packages=find_packages(include=['tripper', 'tripper.*']),
     include_package_data=True,
     author='Stefan Heid',
@@ -15,14 +15,16 @@ setup(
     license='GPLv3',
     keywords='tatort,mediathek,ripper',
     url='https://github.com/stheid/tripper',
-    install_requires=['click', 'pandas', 'thefuzz', 'python-levenshtein', 'requests', 'tqdm', 'youtube-dl', 'pyyaml'],
+    install_requires=['click', 'tqdm', 'pyyaml',
+                      'pandas', 'lxml',
+                      'thefuzz', 'python-levenshtein',
+                      'requests', 'youtube-dl'
+                      ],
     classifiers=[
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.6',
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Operating System :: POSIX :: Linux',
         'Framework :: Sphinx'
     ]

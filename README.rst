@@ -14,8 +14,10 @@ TRipper comes with two data-wrappers:
 
 Future releases will therefore also come with a scheduler such that the tool can run peridodicly
 
+Special thanks to the folkes at `mediathekview`_ for providing an easy to use api.
 
 .. _`Tatort`: https://en.wikipedia.org/wiki/Tatort
+.. _`mediathekview`: https://mediathekviewweb.de
 
 Installation
 ============
@@ -27,9 +29,12 @@ Installation
 
 Usage
 =====
+
+Adapt the :code:`config.yaml` to your liking and run the program.
+
 ::
 
-  $ python -m tripper
+  $ tripper
 
 
 Roadmap

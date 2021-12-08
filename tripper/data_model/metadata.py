@@ -96,11 +96,11 @@ class WikipediaWrapper:
             if score > self.title_thresh:
                 if titles.get(title_) == 1:
                     # if the title unique
-                    result.append(self.title[self.title == title_].index[0])
+                    result.append(self.episodes[self.title == title_].index[0])
                 else:
                     # try to use description to disambiguate
                     for match_, score in process.extract(descr, set(self.metadata)):
                         if score > self.desc_thresh:
-                            result.append(self.meta_data[self.meta_data == match_].index[0])
+                            result.append(self.episodes.meta_data[self.meta_data == match_].index[0])
 
         return result

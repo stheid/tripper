@@ -1,9 +1,12 @@
+import logging
 from pathlib import Path
 
 import youtube_dl
 from tqdm import tqdm
 
 from tripper.data_model import MediathekWrapper, WikipediaWrapper
+
+logger = logging.getLogger(__name__)
 
 
 class Runner:
@@ -19,12 +22,14 @@ class Runner:
         pred_thresholds = self.conf['pred_thresholds']
         mediathek = self.conf['mediathek']
 
+        logger.info('Retrieving mediathek and wikipedia data')
         downloaded = set()
         model = WikipediaWrapper(cache_dir=folders['cache'], final_tatortdir=folders['final'],
                                  pred_thresholds=pred_thresholds)
 
         tatorte = MediathekWrapper(cache_dir=folders['cache'], mediathek_query_size=mediathek['query_size'])
 
+        logger.info('Creating list of Tatorts to download ')
         downloads = []
         for tatort in tatorte:
             ids = model.try_predict_id(tatort.title, tatort.description)
@@ -42,6 +47,7 @@ class Runner:
                 target /= folders['error']
                 downloads.append((tatort.url, target / ','.join(map(str, ids))))
 
+        logger.info('Start downloading')
         for url, dest in tqdm(downloads):
             self.download(url, dest)
 

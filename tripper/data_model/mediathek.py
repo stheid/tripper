@@ -17,6 +17,7 @@ class MediathekWrapper:
         self.mediathek = self._get_mediathek()
 
     def _get_mediathek(self):
+        logger.info('Preprocessing Mediathek data')
         path = self.cache_dir / 'mediathek.csv'
 
         if not path.exists() or older(path, days=1):

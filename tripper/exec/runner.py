@@ -38,7 +38,7 @@ class Runner:
             if len(ids) == 1:
                 # download file to output folder
                 tid = ids[0]
-                if id not in downloaded:
+                if tid not in downloaded:
                     downloaded.add(tid)
                     target /= folders['output']
                     if model.missing_or_smaller(tid, tatort.url):

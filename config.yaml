@@ -9,7 +9,7 @@ runner:
   folders:
     cache: data
     tatort_store_prefix: ""
-    final: 0-fertig
+    final: /run/user/1000/gvfs/sftp:host=xu4,user=sheid/home/sheid/Tatort/0-fertig
     output: 1.1-new
     error: 1.2-check
 

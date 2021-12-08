@@ -1,6 +1,7 @@
 import logging
 import re
 from collections import Counter
+from operator import itemgetter
 from pathlib import Path
 from typing import List
 from urllib.error import HTTPError
@@ -99,19 +100,31 @@ class WikipediaWrapper:
 
         :return: id, filename, prob: id of the tatort and the filename it it should be stored
         """
-        titles = Counter(self.title)
+        titles_multiset = Counter(self.title)
 
         # there should be one and only closely matching title
-        result = []
-        for title_, score in process.extract(title, set(self.title)):
-            if score > self.title_thresh:
-                if titles.get(title_) == 1:
-                    # if the title unique
-                    result.append(self.episodes[self.title == title_].index[0])
-                else:
-                    # try to use description to disambiguate
-                    for match_, score in process.extract(descr, set(self.metadata)):
-                        if score > self.desc_thresh:
-                            result.append(self.episodes.meta_data[self.meta_data == match_].index[0])
+        title_candidates = []
+        if title in titles_multiset:
+            # title is an exact match
+            title_candidates.append(title)
+        else:
+            # we use fuzzy matching as a fallback
+            fuzzy_matches = sorted(process.extract(title, set(self.title)), key=itemgetter(1), reverse=True)
+            first_score = fuzzy_matches[0][1]
+            for i, (title_, score) in enumerate(fuzzy_matches):
+                if score > self.title_thresh or score == first_score:
+                    # take the first of the list and all others that have a higher score than the threshold
+                    title_candidates.append(title_)
 
-        return result
+        id_candidates = []
+        for title_ in title_candidates:
+            if titles_multiset.get(title_) == 1:
+                # if the title unique
+                id_candidates.append(self.episodes[self.title == title_].index[0])
+            else:
+                # try to use description to disambiguate
+                for match_, score in process.extract(descr, set(self.metadata)):
+                    if score > self.desc_thresh:
+                        id_candidates.append(self.episodes.meta_data[self.meta_data == match_].index[0])
+
+        return id_candidates

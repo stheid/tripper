@@ -1,4 +1,5 @@
 import logging
+from operator import itemgetter
 from pathlib import Path
 
 from tqdm import tqdm
@@ -26,29 +27,30 @@ class Runner:
         downloaded = set()
         model = WikipediaWrapper(cache_dir=folders['cache'], final_tatortdir=folders['final'],
                                  pred_thresholds=pred_thresholds)
-
         tatorte = MediathekWrapper(cache_dir=folders['cache'], mediathek_query_size=mediathek['query_size'])
 
+        logger.info('Preprocessing all Tatort entries and filtering for new or higher quality versions.')
         downloads = []
         for tatort in tqdm(tatorte, total=len(tatorte)):
             ids = model.try_predict_id(tatort.title, tatort.description)
 
             target = Path(folders['tatort_store_prefix'])
-            if len(ids) == 1:  # noqa
+            if len(ids) == 1:
                 # download file to output folder
                 tid = ids[0]
                 if id not in downloaded:
                     downloaded.add(tid)
                     target /= folders['output']
                     if model.missing_or_smaller(tid, tatort.url):
-                        downloads.append((tatort.url, target / model.filename(tid)))
+                        downloads.append((tid, tatort.url, target / model.filename(tid)))
             else:
                 target /= folders['error']
                 downloads.append(
-                    (tatort.url, target / (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:40]}')))
+                    (ids[0], tatort.url,
+                     target / (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:100]}')))
 
-        logger.info('Start downloading')
-        for url, dest in tqdm(sorted(downloads)):
+        logger.info(f'Start downloading {len(downloads)} movies')
+        for _, url, dest in tqdm(sorted(downloads, key=itemgetter(0))):
             self.download(url, dest)
 
     def download(self, url, dest: Path):

@@ -1,3 +1,4 @@
+import logging
 import re
 from collections import Counter
 from pathlib import Path
@@ -12,6 +13,8 @@ from thefuzz import process
 
 from tripper.util.path import older
 from tripper.util.string import simplify
+
+logger = logging.getLogger(__name__)
 
 
 class WikipediaWrapper:
@@ -66,15 +69,20 @@ class WikipediaWrapper:
             return True
         try:
             size = urlopen(url).length
-            # some files will be playlist files (.m3u8). those tiny files will never be larger than existing files,
-            # but we will omit re downloading anyways.
+            if size < 1000000:
+                # some files will be playlist files (.m3u8). those tiny files will never be larger than existing files,
+                # but we will omit re downloading anyways.
+                logger.info(f'The url of the existing file {self.filename(tatort_id)} is a playlist,'
+                            ' wherefore we cannot determine the download size. Skipping download.')
+                return False
 
-            # significantly smaller
+            # existing is significantly smaller
             return self.size_of_tatort[tatort_id] * 1.2 < size
         except KeyError:
             return True
         except HTTPError:
-            print(f'File exists, but size of the remote file could not be determined. skipping: {url}')
+            print(
+                f'{self.filename(tatort_id)} exists, but size of the remote file could not be determined. skipping: {url}')
             return False
 
     def filename(self, tatort_id: int):

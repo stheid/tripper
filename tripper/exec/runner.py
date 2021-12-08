@@ -45,7 +45,8 @@ class Runner:
                     downloads.append((tatort.url, target / model.filename(tid)))
             else:
                 target /= folders['error']
-                downloads.append((tatort.url, target / ','.join(map(str, ids))))
+                downloads.append(
+                    (tatort.url, target / (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:40]}')))
 
         logger.info('Start downloading')
         for url, dest in tqdm(downloads):

@@ -30,6 +30,8 @@ class WikipediaWrapper:
         path = self.cache_dir / 'episodes.csv'
 
         if not path.exists() or older(path, days=5):
+            logger.info('Downloading and processing wikipedia meta data')
+
             req = requests.get('https://de.wikipedia.org/wiki/Liste_der_Tatort-Folgen')
 
             with open(self.cache_dir / 'teams.yaml') as f:
@@ -54,6 +56,7 @@ class WikipediaWrapper:
             )
             episodes.to_csv(path)  # noqa
         else:
+            logger.info('Using cached wikipedia meta data')
             episodes = pd.read_csv(path).set_index('id')
 
         return episodes
@@ -81,7 +84,7 @@ class WikipediaWrapper:
         except KeyError:
             return True
         except HTTPError:
-            print(
+            logger.info(
                 f'{self.filename(tatort_id)} exists, but size of the remote file could not be determined. skipping: {url}')
             return False
 

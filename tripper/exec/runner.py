@@ -29,9 +29,8 @@ class Runner:
 
         tatorte = MediathekWrapper(cache_dir=folders['cache'], mediathek_query_size=mediathek['query_size'])
 
-        logger.info('Creating list of Tatorts to download ')
         downloads = []
-        for tatort in tatorte:
+        for tatort in tqdm(tatorte, total=len(tatorte)):
             ids = model.try_predict_id(tatort.title, tatort.description)
 
             target = Path(folders['tatort_store_prefix'])
@@ -49,7 +48,7 @@ class Runner:
                     (tatort.url, target / (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:40]}')))
 
         logger.info('Start downloading')
-        for url, dest in tqdm(downloads):
+        for url, dest in tqdm(sorted(downloads)):
             self.download(url, dest)
 
     def download(self, url, dest: Path):

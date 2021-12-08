@@ -1,7 +1,8 @@
 import re
 from collections import Counter
+from numbers import Number
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import requests
@@ -56,10 +57,10 @@ class WikipediaWrapper:
     def __getattr__(self, item):
         return getattr(self.episodes, item)
 
-    def missing_or_smaller(self, tatort_id: int, size):
+    def missing_or_smaller(self, tatort_id: int, size: Optional[Number]):
         try:
             # significantly smaller
-            return self.size_of_tatort[tatort_id] * 1.1 < size
+            return self.size_of_tatort[tatort_id] * 1.1 < (size or float('inf'))
         except KeyError:
             return True
 

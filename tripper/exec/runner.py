@@ -1,6 +1,6 @@
 from pathlib import Path
-from urllib.request import urlretrieve
 
+import youtube_dl
 from tqdm import tqdm
 
 from tripper.data_model import MediathekWrapper, WikipediaWrapper
@@ -25,7 +25,8 @@ class Runner:
 
         tatorte = MediathekWrapper(cache_dir=folders['cache'], mediathek_query_size=mediathek['query_size'])
 
-        for tatort in tqdm(tatorte, total=len(tatorte)):
+        downloads = []
+        for tatort in tatorte:
             ids = model.try_predict_id(tatort.title, tatort.description)
 
             target = Path(folders['tatort_store_prefix'])
@@ -36,14 +37,22 @@ class Runner:
                     downloaded.add(tid)
                     target /= folders['output']
                     model.missing_or_smaller(tid, tatort.filesize)
-                    self.download(tatort.url, target / model.filename(tid))
+                    downloads.append((tatort.url, target / model.filename(tid)))
             else:
                 target /= folders['error']
-                self.download(tatort.url, target / ','.join(map(str, ids)))
+                downloads.append((tatort.url, target / ','.join(map(str, ids))))
+
+        for url, dest in tqdm(downloads):
+            self.download(url, dest)
 
     def download(self, url, dest: Path):
-        dest.mkdir(parents=True, exist_ok=True)
+        dest.parent.mkdir(parents=True, exist_ok=True)
         if self.dry_run:  # noqa
             print(f'would create {dest} from {url}')
         else:
-            urlretrieve(url, dest)
+            # remove old finished files (happens if we download, because of higher quality)
+            # fortunately this will not remove partial files, which youtube-dl will continue!
+            dest.unlink(missing_ok=True)
+            ydl_opts = dict(outtmpl=str(dest))
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])

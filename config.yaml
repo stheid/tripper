@@ -1,6 +1,6 @@
 runner:
   general:
-    dry_run: true
+    dry_run: false
 
   pred_thresholds:
     title_thresh: 99

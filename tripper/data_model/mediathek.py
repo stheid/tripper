@@ -16,9 +16,6 @@ class MediathekWrapper:
         self.mediathek_query_size = mediathek_query_size
         self.mediathek = self._get_mediathek()
 
-    def __len__(self):
-        return len(self.mediathek)
-
     def _get_mediathek(self):
         path = self.cache_dir / 'mediathek.csv'
 

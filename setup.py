@@ -15,13 +15,7 @@ setup(
     license='GPLv3',
     keywords='tatort,mediathek,ripper',
     url='https://github.com/stheid/tripper',
-    install_requires=[
-        'click',
-        'pandas',
-        'thefuzz',
-        'requests',
-        'pyyaml'
-    ],
+    install_requires=['click', 'pandas', 'thefuzz', 'requests', 'tqdm', 'youtube-dl', 'pyyaml'],
     classifiers=[
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.9',

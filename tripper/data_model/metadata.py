@@ -66,7 +66,7 @@ class WikipediaWrapper:
 
     def filename(self, tatort_id: int):
         s = self.episodes.loc[tatort_id]
-        return f'{tatort_id} {s.title} – {s.team} ({s.city}).mp4'
+        return f'{tatort_id} {s.title} — {s.team} ({s.city}).mp4'
 
     def try_predict_id(self, title, descr) -> List[int]:
         """

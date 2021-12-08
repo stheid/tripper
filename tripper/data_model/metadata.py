@@ -56,20 +56,26 @@ class WikipediaWrapper:
         return episodes
 
     def __getattr__(self, item):
-        return getattr(self.episodes, item)
+        if item == 'episodes':
+            return
+        if hasattr(self, 'episodes'):
+            return getattr(self.episodes, item)
 
     def missing_or_smaller(self, tatort_id: int, url: str):
+        if tatort_id not in self.size_of_tatort:
+            return True
         try:
             size = urlopen(url).length
             # some files will be playlist files (.m3u8). those tiny files will never be larger than existing files,
-            # but we will omit redownloading anyways.
+            # but we will omit re downloading anyways.
 
             # significantly smaller
             return self.size_of_tatort[tatort_id] * 1.2 < size
         except KeyError:
             return True
         except HTTPError:
-            print(f'error estimating filesize with url. file will be skipped: {url}')
+            print(f'File exists, but size of the remote file could not be determined. skipping: {url}')
+            return False
 
     def filename(self, tatort_id: int):
         s = self.episodes.loc[tatort_id]

@@ -31,11 +31,11 @@ class MediathekWrapper:
                                     'duration_min': 84 * 60, 'duration_max': 92 * 60}))
 
             df = pd.json_normalize(res.json()['result']['results'])
-            logger.info('downloaded data from mediathekview')
+            logger.info('Downloaded data from mediathekview')
 
             mediathek = (
                 df.set_index('id')
-                    .assign(url=lambda df_: df_.url_video_hd.fillna(df_.url_video))
+                    .assign(url=lambda df_: df_.url_video_hd.replace('', pd.NA).fillna(df_.url_video))
                     .drop(columns=['url_video', 'url_video_low', 'url_video_hd', 'url_website', 'url_subtitle',
                                    'filmlisteTimestamp'])
                     # the sorting is important, so that ARD is always favoured when dropping duplicate (A is the first character)
@@ -61,15 +61,15 @@ class MediathekWrapper:
                             .replace(" ?\(\d+\)$", "", regex=True)
                             .replace("^«(?P<x>[\w\s]*)» – [\S\s]*$", "\g<x>", regex=True)
                             )
-                    .rename(columns=dict(size='filesize'))
-                [['title', 'description', 'url', 'filesize', 'timestamp']]
+                [['title', 'description', 'url', 'timestamp']]
             )
 
-            logger.info('downloaded data from mediathekview')
+            logger.info('Processed data from mediathekview')
 
             mediathek.to_csv(path)  # noqa
         else:
             mediathek = pd.read_csv(path)
+            logger.info('Using cached mediathekview data')
 
         return mediathek
 

@@ -3,18 +3,18 @@ runner:
     dry_run: false
 
   pred_thresholds:
-    title_thresh: 99
-    desc_thresh: 90
+    title_thresh: 90
+    desc_thresh: 80
 
   folders:
     cache: data
     tatort_store_prefix: ""
-    final: '1-new'#'0-fertig'
-    output: '1-new'
-    error: '2-check'
+    final: 0-fertig
+    output: 1.1-new
+    error: 1.2-check
 
   mediathek:
-    query_size: 100
+    query_size: 1000
 
 sheduler:
   null

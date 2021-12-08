@@ -41,8 +41,8 @@ class Runner:
                 if id not in downloaded:
                     downloaded.add(tid)
                     target /= folders['output']
-                    model.missing_or_smaller(tid, tatort.url)
-                    downloads.append((tatort.url, target / model.filename(tid)))
+                    if model.missing_or_smaller(tid, tatort.url):
+                        downloads.append((tatort.url, target / model.filename(tid)))
             else:
                 target /= folders['error']
                 downloads.append(

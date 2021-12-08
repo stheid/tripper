@@ -1,8 +1,9 @@
 import re
 from collections import Counter
-from numbers import Number
 from pathlib import Path
-from typing import List, Optional
+from typing import List
+from urllib.error import HTTPError
+from urllib.request import urlopen
 
 import pandas as pd
 import requests
@@ -57,12 +58,18 @@ class WikipediaWrapper:
     def __getattr__(self, item):
         return getattr(self.episodes, item)
 
-    def missing_or_smaller(self, tatort_id: int, size: Optional[Number]):
+    def missing_or_smaller(self, tatort_id: int, url: str):
         try:
+            size = urlopen(url).length
+            # some files will be playlist files (.m3u8). those tiny files will never be larger than existing files,
+            # but we will omit redownloading anyways.
+
             # significantly smaller
-            return self.size_of_tatort[tatort_id] * 1.1 < (size or float('inf'))
+            return self.size_of_tatort[tatort_id] * 1.2 < size
         except KeyError:
             return True
+        except HTTPError:
+            print(f'error estimating filesize with url. file will be skipped: {url}')
 
     def filename(self, tatort_id: int):
         s = self.episodes.loc[tatort_id]

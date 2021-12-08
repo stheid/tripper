@@ -9,7 +9,7 @@ runner:
   folders:
     cache: data
     tatort_store_prefix: ""
-    final: '0-fertig'
+    final: '1-new'#'0-fertig'
     output: '1-new'
     error: '2-check'
 

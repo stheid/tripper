@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
 
-import youtube_dl
 from tqdm import tqdm
+from youtube_dl import YoutubeDL
 
 from tripper.data_model import MediathekWrapper, WikipediaWrapper
 
@@ -41,7 +41,7 @@ class Runner:
                 if id not in downloaded:
                     downloaded.add(tid)
                     target /= folders['output']
-                    model.missing_or_smaller(tid, tatort.filesize)
+                    model.missing_or_smaller(tid, tatort.url)
                     downloads.append((tatort.url, target / model.filename(tid)))
             else:
                 target /= folders['error']
@@ -61,5 +61,5 @@ class Runner:
             # fortunately this will not remove partial files, which youtube-dl will continue!
             dest.unlink(missing_ok=True)
             ydl_opts = dict(outtmpl=str(dest))
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])

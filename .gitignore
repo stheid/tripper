@@ -3,3 +3,4 @@
 /tests/tmp/episodes.csv
 /tests/tmp/mediathek.csv
 /.idea/
+/config_test.yaml

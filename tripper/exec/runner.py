@@ -4,6 +4,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 from youtube_dl import YoutubeDL
+from youtube_dl.utils import DownloadError
 
 from tripper.data_model import MediathekWrapper, WikipediaWrapper
 
@@ -56,11 +57,14 @@ class Runner:
     def download(self, url, dest: Path):
         dest.parent.mkdir(parents=True, exist_ok=True)
         if self.dry_run:  # noqa
-            print(f'would create {dest} from {url}')
+            logger.info(f'would create {dest} from {url}')
         else:
             # remove old finished files (happens if we download, because of higher quality)
             # fortunately this will not remove partial files, which youtube-dl will continue!
             dest.unlink(missing_ok=True)
-            ydl_opts = dict(outtmpl=str(dest))
-            with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+            ydl_opts = dict(outtmpl=str(dest), retries=5)
+            try:
+                with YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([url])
+            except DownloadError:
+                logger.error(f'Failed to download {dest}. Skipping {url}')

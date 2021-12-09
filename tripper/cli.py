@@ -7,8 +7,8 @@ from tripper.exec import Runner
 
 
 @click.command()
-@click.option('-config', default='config.yaml', help='Config file')
-@click.option('-loglevel', default=logging.INFO, help='Config file')
+@click.option('--config', default='config.yaml', help='Config file')
+@click.option('--loglevel', default=logging.INFO, help='Config file')
 def main(config, loglevel, **kwargs):
     logging.basicConfig(level=loglevel)
     if config is not None:

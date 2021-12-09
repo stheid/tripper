@@ -3,9 +3,9 @@ import re
 from collections import Counter
 from operator import itemgetter
 from pathlib import Path
+from subprocess import check_output, CalledProcessError
 from typing import List
 from urllib.error import HTTPError
-from urllib.request import urlopen
 
 import pandas as pd
 import requests
@@ -73,21 +73,28 @@ class WikipediaWrapper:
         if tatort_id not in self.size_of_tatort:
             return True
         try:
-            size = urlopen(url).length
-            if size < 1000000:
-                # some files will be playlist files (.m3u8). those tiny files will never be larger than existing files,
-                # but we will omit re downloading anyways.
-                logger.info(f'The url of the existing file {self.filename(tatort_id)} is a playlist,'
-                            ' wherefore we cannot determine the download size. Skipping download.')
+            result = (
+                check_output(['ffprobe', url, '-show_entries', 'format=size,duration', '-v' 'quiet', '-of', 'csv=p=0'])
+                    .encode('utf-8')
+            )
+            if not result:
+                logger.warning('ffprobe did not return filesize and duration estimate.'
+                               f' The url is likely geoblocked! Skipping: {url}')
+            duration, size = result.split(',')
+            if duration < 80 * 60:
+                logger.info('The url contains a tatort that is shorter than 80 minutes.'
+                            f' That is likely not a tatort url. Skipping: {url} ')
                 return False
 
             # existing is significantly smaller
             return self.size_of_tatort[tatort_id] * 1.2 < size
         except KeyError:
             return True
+        except CalledProcessError:
+            logger.error('Calling ffprobe failed. Is ffmpeg installed?')
         except HTTPError:
             logger.info(
-                f'{self.filename(tatort_id)} exists, but size of the remote file could not be determined. skipping: {url}')
+                f'{self.filename(tatort_id)} exists, but size of the remote file could not be determined. Skipping: {url}')
             return False
 
     def filename(self, tatort_id: int):

@@ -12,7 +12,9 @@ TRipper comes with two data-wrappers:
 2. Wikipedia - to retrieve the metadata
 
 
-Future releases will therefore also come with a scheduler such that the tool can run peridodicly
+Future releases will therefore also come with a scheduler such that the tool can run peridodicly.
+
+The implementation heavily relies on ffmpeg and youtube-dl (as a python dependency)
 
 Special thanks to the folkes at `mediathekview`_ for providing an easy to use api.
 
@@ -24,6 +26,7 @@ Installation
 
 ::
 
+  $ apt install ffmpeg # (or similar commands)
   $ pip install git+git://github.com/stheid/tripper.git
 
 

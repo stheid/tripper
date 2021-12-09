@@ -62,7 +62,8 @@ class Runner:
             # remove old finished files (happens if we download, because of higher quality)
             # fortunately this will not remove partial files, which youtube-dl will continue!
             dest.unlink(missing_ok=True)
-            ydl_opts = dict(outtmpl=str(dest), retries=5)
+            ydl_opts = dict(outtmpl=str(dest), retries=5,
+                            external_downloader_args=['-hide_banner', '-loglevel', 'panic'])
             try:
                 with YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])

@@ -25,7 +25,7 @@ class Runner:
         mediathek = self.conf['mediathek']
 
         logger.info('Retrieving mediathek and wikipedia data')
-        downloaded = set()
+        processed = set()
         model = WikipediaWrapper(cache_dir=folders['cache'], final_tatortdir=folders['final'],
                                  pred_thresholds=pred_thresholds)
         tatorte = MediathekWrapper(cache_dir=folders['cache'], mediathek_query_size=mediathek['query_size'])
@@ -39,8 +39,8 @@ class Runner:
             if len(ids) == 1:
                 # download file to output folder
                 tid = ids[0]
-                if tid not in downloaded:
-                    downloaded.add(tid)
+                if tid not in processed:
+                    processed.add(tid)
                     target /= folders['output']
                     if model.missing_or_smaller(tid, tatort.url):
                         downloads.append((tid, tatort.url, target / model.filename(tid)))

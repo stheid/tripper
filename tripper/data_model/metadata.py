@@ -50,6 +50,7 @@ class WikipediaWrapper:
                     .rename(columns=dict(Folge='id', Titel='title', Ermittler='team', Erstausstrahlung='airing_date',
                                          City='city', Besonderheiten='notes'))
                     .assign(city=lambda df: [_predict_city(team) for team in df.team])
+                    .assign(id=lambda df: df.id.astype(int))
                 [['id', 'title', 'team', 'airing_date', 'city', 'notes']]
                     .assign(title=lambda df: df.title.str.replace(" ?\([\d\D]*\)$", "", regex=True))
                     .assign(meta_data=lambda df: df.airing_date.str.extract('(\d{4})$', expand=False)

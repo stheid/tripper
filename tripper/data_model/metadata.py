@@ -5,7 +5,6 @@ from operator import itemgetter
 from pathlib import Path
 from subprocess import check_output, CalledProcessError
 from typing import List
-from urllib.error import HTTPError
 
 import pandas as pd
 import requests
@@ -69,33 +68,30 @@ class WikipediaWrapper:
         if hasattr(self, 'episodes'):
             return getattr(self.episodes, item)
 
-    def missing_or_smaller(self, tatort_id: int, url: str):
-        if tatort_id not in self.size_of_tatort:
-            return True
+    def get_size_if_missing_or_smaller(self, tatort_id: int, url: str):
         try:
             result = (
-                check_output(['ffprobe', url, '-show_entries', 'format=size,duration', '-v' 'quiet', '-of', 'csv=p=0'])
-                    .encode('utf-8')
+                check_output(['ffprobe', url, '-show_entries', 'format=size,duration', '-v', 'quiet', '-of', 'csv=p=0'])
+                    .decode('utf-8')
             )
             if not result:
                 logger.warning('ffprobe did not return filesize and duration estimate.'
                                f' The url is likely geoblocked! Skipping: {url}')
-            duration, size = result.split(',')
-            if duration < 80 * 60:
-                logger.info('The url contains a tatort that is shorter than 80 minutes.'
-                            f' That is likely not a tatort url. Skipping: {url} ')
-                return False
 
-            # existing is significantly smaller
-            return self.size_of_tatort[tatort_id] * 1.2 < size
-        except KeyError:
-            return True
+            duration, size = [float(entry) for entry in result.split(',')]
         except CalledProcessError:
             logger.error('Calling ffprobe failed. Is ffmpeg installed?')
-        except HTTPError:
-            logger.info(
-                f'{self.filename(tatort_id)} exists, but size of the remote file could not be determined. Skipping: {url}')
-            return False
+            return -1
+
+        if duration < 80 * 60:
+            logger.info('The url contains a tatort that is shorter than 80 minutes.'
+                        f' That is likely not a tatort url. Skipping: {url} ')
+            return -1
+
+        if tatort_id not in self.size_of_tatort or self.size_of_tatort[tatort_id] * 1.2 < size:
+            # missing or existing is significantly smaller
+            return size
+        return -1
 
     def filename(self, tatort_id: int):
         s = self.episodes.loc[tatort_id]

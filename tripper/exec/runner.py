@@ -25,34 +25,39 @@ class Runner:
         mediathek = self.conf['mediathek']
 
         logger.info('Retrieving mediathek and wikipedia data')
-        processed = set()
+        processed = dict()
         model = WikipediaWrapper(cache_dir=folders['cache'], final_tatortdir=folders['final'],
                                  pred_thresholds=pred_thresholds)
         tatorte = MediathekWrapper(cache_dir=folders['cache'], mediathek_query_size=mediathek['query_size'])
 
         logger.info('Preprocessing all Tatort entries and filtering for new or higher quality versions.')
-        downloads = []
+        downloads = dict()
+        check_downloads = []
         for tatort in tqdm(tatorte, total=len(tatorte)):
             ids = model.try_predict_id(tatort.title, tatort.description)
 
-            target = Path(folders['tatort_store_prefix'])
             if len(ids) == 1:
                 # download file to output folder
                 tid = ids[0]
-                if tid not in processed:
-                    processed.add(tid)
-                    target /= folders['output']
-                    if model.missing_or_smaller(tid, tatort.url):
-                        downloads.append((tid, tatort.url, target / model.filename(tid)))
+                new_size = model.get_size_if_missing_or_smaller(tid, tatort.url)
+                if new_size != -1 and new_size > processed.get(tid, 0):
+                    processed[tid] = new_size
+                    downloads[tid] = (tatort.url, model.filename(tid))
             else:
-                target /= folders['error']
-                downloads.append(
-                    (ids[0], tatort.url,
-                     target / (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:100]}')))
+                check_downloads.append(
+                    (tatort.url, (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:100]}')))
 
-        logger.info(f'Start downloading {len(downloads)} movies')
-        for _, url, dest in tqdm(sorted(downloads, key=itemgetter(0))):
-            self.download(url, dest)
+        if downloads:
+            logger.info(f'Start downloading {len(downloads)} movies')
+            target = Path(folders['tatort_store_prefix']) / folders['output']
+            for _, (url, dest) in tqdm(sorted(downloads.items(), key=itemgetter(0))):
+                self.download(url, target / dest)
+
+        if check_downloads:
+            logger.info(f'Start downloading {len(check_downloads)} check/error movies')
+            target = Path(folders['tatort_store_prefix']) / folders['error']
+            for url, dest in tqdm(check_downloads):
+                self.download(url, target / dest)
 
     def download(self, url, dest: Path):
         dest.parent.mkdir(parents=True, exist_ok=True)

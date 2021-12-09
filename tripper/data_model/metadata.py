@@ -58,9 +58,9 @@ class WikipediaWrapper:
             episodes.to_csv(path)  # noqa
         else:
             logger.info('Using cached wikipedia meta data')
-            episodes = pd.read_csv(path).set_index('id')
+            episodes = pd.read_csv(path)
 
-        return episodes
+        return episodes.set_index('id')
 
     def __getattr__(self, item):
         if item == 'episodes':
@@ -115,6 +115,9 @@ class WikipediaWrapper:
                 if score > self.title_thresh or score == first_score:
                     # take the first of the list and all others that have a higher score than the threshold
                     title_candidates.append(title_)
+                else:
+                    # the list is sorted, so we can break if the score no longer exceeds the threshold
+                    break
 
         id_candidates = []
         for title_ in title_candidates:
@@ -125,6 +128,6 @@ class WikipediaWrapper:
                 # try to use description to disambiguate
                 for match_, score in process.extract(descr, set(self.metadata)):
                     if score > self.desc_thresh:
-                        id_candidates.append(self.episodes.meta_data[self.meta_data == match_].index[0])
+                        id_candidates.append(self.episodes[self.meta_data == match_].index[0])
 
         return id_candidates

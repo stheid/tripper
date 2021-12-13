@@ -40,7 +40,7 @@ class Runner:
                 # download file to output folder
                 tid = ids[0]
                 new_size = model.get_size_if_missing_or_smaller(tid, tatort.url)
-                if new_size != -1 and new_size > processed.get(tid, 0):
+                if new_size is not None and new_size > processed.get(tid, 0):
                     processed[tid] = new_size
                     downloads[tid] = (tatort.url, model.filename(tid))
             else:

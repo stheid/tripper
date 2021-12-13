@@ -4,7 +4,8 @@ from collections import Counter
 from operator import itemgetter
 from pathlib import Path
 from subprocess import check_output, CalledProcessError
-from typing import List
+from typing import List, Optional, Tuple
+from urllib.request import urlopen
 
 import pandas as pd
 import requests
@@ -25,6 +26,7 @@ class WikipediaWrapper:
         self.size_of_tatort = {int(re.match('(\d+)', p.name)[0]): p.stat().st_size for p in
                                Path(final_tatortdir).glob('*.mp4')}
         self.episodes = self._get_wiki_tatortlist()
+        self.filesize_estimator = FilesizeEstimator()
 
     def _get_wiki_tatortlist(self):
         path = self.cache_dir / 'episodes.csv'
@@ -68,30 +70,21 @@ class WikipediaWrapper:
         if hasattr(self, 'episodes'):
             return getattr(self.episodes, item)
 
-    def get_size_if_missing_or_smaller(self, tatort_id: int, url: str):
-        try:
-            result = (
-                check_output(['ffprobe', url, '-show_entries', 'format=size,duration', '-v', 'quiet', '-of', 'csv=p=0'])
-                    .decode('utf-8')
-            )
-            if not result:
-                logger.warning('ffprobe did not return filesize and duration estimate.'
-                               f' The url is likely geoblocked! Skipping: {url}')
+    def get_size_if_missing_or_smaller(self, tatort_id: int, url: str) -> Optional[float]:
+        duration, size = self.filesize_estimator(url)
 
-            duration, size = [float(entry) for entry in result.split(',')]
-        except CalledProcessError:
-            logger.error('Calling ffprobe failed. Is ffmpeg installed?')
-            return -1
+        if size is None:
+            return None
 
-        if duration < 80 * 60:
-            logger.info('The url contains a tatort that is shorter than 80 minutes.'
+        if duration is not None and duration < 80 * 60:
+            logger.info('The url contains a video that is shorter than 80 minutes.'
                         f' That is likely not a tatort url. Skipping: {url} ')
-            return -1
+            return None
 
         if tatort_id not in self.size_of_tatort or self.size_of_tatort[tatort_id] * 1.2 < size:
             # missing or existing is significantly smaller
             return size
-        return -1
+        return None
 
     def filename(self, tatort_id: int):
         s = self.episodes.loc[tatort_id]
@@ -135,3 +128,44 @@ class WikipediaWrapper:
                         id_candidates.append(self.episodes[self.meta_data == match_].index[0])
 
         return id_candidates
+
+
+class FilesizeEstimator:
+    methods = ['ffmpeg', 'fallback']
+
+    def __init__(self, default_method='fallback'):
+        self.method = default_method
+        self.succesfull_methods = dict()
+
+    def __call__(self, url, *args, **kwargs):
+        return self.get_filesize(url)
+
+    def get_filesize(self, url) -> Tuple[Optional[float], Optional[float]]:
+        """
+
+        :param url:
+        :return: duration if known, approximate filesize
+        """
+        if self.method == 'ffmpeg':
+            try:
+                result = (
+                    check_output(
+                        ['ffprobe', url, '-show_entries', 'format=size,duration', '-v', 'quiet', '-of', 'csv=p=0'])
+                        .decode('utf-8')
+                )
+                if not result:
+                    logger.warning('ffprobe did not return filesize and duration estimate.'
+                                   f' The url is likely geoblocked! Skipping: {url}')
+                self.succesfull_methods['ffmpeg'] = True
+                return tuple([float(entry) for entry in result.split(',')])  # noqa
+            except CalledProcessError:
+                logger.error('Calling ffprobe failed. Is ffmpeg installed? Falling back to approximate method.')
+                if self.method not in self.succesfull_methods:
+                    self.method = FilesizeEstimator.methods[FilesizeEstimator.methods.index(self.method) + 1]
+        size = urlopen(url).length
+        if size < 1000000:
+            direct_url = check_output(['youtube-dl', url, '-g']).decode('utf-8')
+            if 'geoblock' in direct_url or 'geoprotect' in direct_url:
+                logger.info(f'The url is geoblocked. Skipping {url}')
+                return None, None
+        return None, size

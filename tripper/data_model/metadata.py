@@ -3,8 +3,10 @@ import re
 from collections import Counter
 from operator import itemgetter
 from pathlib import Path
+from shutil import which
 from subprocess import check_output, CalledProcessError
 from typing import List, Optional, Tuple
+from urllib.error import HTTPError
 from urllib.request import urlopen
 
 import pandas as pd
@@ -133,8 +135,8 @@ class WikipediaWrapper:
 class FilesizeEstimator:
     methods = ['ffmpeg', 'fallback']
 
-    def __init__(self, default_method='fallback'):
-        self.method = default_method
+    def __init__(self):
+        self.method = 'fallback' if which('ffprobe') is None else 'ffmpeg'
         self.succesfull_methods = dict()
 
     def __call__(self, url, *args, **kwargs):
@@ -158,14 +160,19 @@ class FilesizeEstimator:
                                    f' The url is likely geoblocked! Skipping: {url}')
                 self.succesfull_methods['ffmpeg'] = True
                 return tuple([float(entry) for entry in result.split(',')])  # noqa
-            except CalledProcessError:
-                logger.error('Calling ffprobe failed. Is ffmpeg installed? Falling back to approximate method.')
-                if self.method not in self.succesfull_methods:
-                    self.method = FilesizeEstimator.methods[FilesizeEstimator.methods.index(self.method) + 1]
-        size = urlopen(url).length
-        if size < 1000000:
-            direct_url = check_output(['youtube-dl', url, '-g']).decode('utf-8')
-            if 'geoblock' in direct_url or 'geoprotect' in direct_url:
-                logger.info(f'The url is geoblocked. Skipping {url}')
+            except CalledProcessError as e:
+                logger.warning(f'Calling ffprobe failed. Maybe a 404 error. Skipping {url}')
                 return None, None
-        return None, size
+
+        try:
+            size = urlopen(url).length
+            if size < 1000000:
+                direct_url = check_output(['youtube-dl', url, '-g']).decode('utf-8')
+                if 'geoblock' in direct_url or 'geoprotect' in direct_url:
+                    logger.info(f'The url is geoblocked. Skipping {url}')
+                    return None, None
+            return None, size
+        except HTTPError:
+            logger.warning(f'Calling ffprobe failed. Maybe a 404 error. Skipping {url}')
+
+            return None, None

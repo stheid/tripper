@@ -1,6 +1,7 @@
 import logging
 import re
 from collections import Counter
+from importlib import resources
 from operator import itemgetter
 from pathlib import Path
 from shutil import which
@@ -38,8 +39,8 @@ class WikipediaWrapper:
 
             req = requests.get('https://de.wikipedia.org/wiki/Liste_der_Tatort-Folgen')
 
-            with open(self.cache_dir / 'teams.yaml') as f:
-                teams = {simplify(team): city for team, city in yaml.safe_load(f).items()}
+            teams_s = resources.read_text('tripper.resources', 'teams.yaml')
+            teams = {simplify(team): city for team, city in yaml.safe_load(teams_s).items()}
 
             def _predict_city(team):
                 value, prob = process.extractOne(simplify(team), teams.keys())

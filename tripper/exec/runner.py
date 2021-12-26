@@ -21,6 +21,7 @@ class Runner:
 
     def run(self):
         folders = self.conf['folders']
+        Path(folders['cache']).mkdir(parents=True, exist_ok=True)
         pred_thresholds = self.conf['pred_thresholds']
         mediathek = self.conf['mediathek']
 

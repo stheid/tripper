@@ -1,5 +1,4 @@
-/data/episodes.csv
-/data/mediathek.csv
+/cache
 /tests/tmp/episodes.csv
 /tests/tmp/mediathek.csv
 /.idea/

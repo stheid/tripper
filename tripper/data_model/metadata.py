@@ -16,7 +16,7 @@ import yaml
 from thefuzz import process
 
 from tripper.util.path import older
-from tripper.util.string import simplify
+from tripper.util.string import sort_and_simplify
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +40,10 @@ class WikipediaWrapper:
             req = requests.get('https://de.wikipedia.org/wiki/Liste_der_Tatort-Folgen')
 
             teams_s = resources.read_text('tripper.resources', 'teams.yaml')
-            teams = {simplify(team): city for team, city in yaml.safe_load(teams_s).items()}
+            teams = {sort_and_simplify(team): city for team, city in yaml.safe_load(teams_s).items()}
 
             def _predict_city(team):
-                value, prob = process.extractOne(simplify(team), teams.keys())
+                value, prob = process.extractOne(sort_and_simplify(team), teams.keys())
                 return teams[value] + ('??' if prob < 80 else '?' if prob < 90 else '')
 
             episodes = (
@@ -126,7 +126,7 @@ class WikipediaWrapper:
                 id_candidates.append(self.episodes[self.title == title_].index[0])
             else:
                 # try to use description to disambiguate
-                for match_, score in process.extract(descr, set(self.metadata)):
+                for match_, score in process.extract(descr, set(self.meta_data)):
                     if score > self.desc_thresh:
                         id_candidates.append(self.episodes[self.meta_data == match_].index[0])
 

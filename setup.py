@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='tripper',
-    version='0.1.2',
-    packages=find_packages(where='tripper'),
+    version='0.1.6',
+    packages=find_packages(include=['tripper', 'tripper.*']),
     include_package_data=True,
     author='Stefan Heid',
     author_email='stefan.heid@upb.de',

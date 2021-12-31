@@ -28,7 +28,7 @@ class MediathekWrapper:
                                     "query": "tatort"}],
                                     "sortBy": "timestamp", "sortOrder": "desc", "offset": 0, 'future': True,
                                     "size": self.mediathek_query_size,
-                                    'duration_min': 84 * 60, 'duration_max': 92 * 60}))
+                                    'duration_min': 55 * 60, 'duration_max': 105 * 60}))
 
             df = pd.json_normalize(res.json()['result']['results'])
 

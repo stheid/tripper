@@ -19,3 +19,8 @@ def test_get_episodes(processor):
 
 def test_try_predict_id(processor):
     assert processor.try_predict_id('Murot und das Murmeltier', 'ein Tatort')
+
+
+def test_try_predict_id2(processor):
+    print(processor.try_predict_id('Spielverderber', 'Schimanski '))
+    assert True

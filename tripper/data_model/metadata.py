@@ -16,7 +16,7 @@ import yaml
 from thefuzz import process
 
 from tripper.util.path import older
-from tripper.util.string import sort_and_simplify
+from tripper.util.string import sort_and_simplify, to_bag_of_words
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class WikipediaWrapper:
         self.filesize_estimator = FilesizeEstimator()
 
     def _get_wiki_tatortlist(self):
-        path = self.cache_dir / 'episodes.csv'
+        path = self.cache_dir / 'episodes.pkl'
 
         if not path.exists() or older(path, days=5):
             logger.info('Downloading and processing wikipedia meta data')
@@ -57,13 +57,16 @@ class WikipediaWrapper:
                     .assign(id=lambda df: df.id.astype(int))
                 [['id', 'title', 'team', 'airing_date', 'city', 'notes']]
                     .assign(title=lambda df: df.title.str.replace(" ?\([\d\D]*\)$", "", regex=True))
-                    .assign(meta_data=lambda df: df.airing_date.str.extract('(\d{4})$', expand=False)
-                                                 + ' ' + df.team + ' ' + df.city + ' ' + df.notes)
+                    .assign(meta_data=lambda df:
+                df.apply(lambda row: to_bag_of_words(filter(lambda x: bool(x) and isinstance(x, str),
+                                                            [(re.search('(\d{4})', row.airing_date) or [
+                                                                ''])[0],
+                                                             row.team, row.city])), axis=1))
             )
-            episodes.to_csv(path)  # noqa
+            episodes.to_pickle(path)  # noqa
         else:
             logger.info('Using cached wikipedia meta data')
-            episodes = pd.read_csv(path)
+            episodes = pd.read_pickle(path)
 
         return episodes.set_index('id')
 
@@ -79,8 +82,8 @@ class WikipediaWrapper:
         if size is None:
             return None
 
-        if duration is not None and duration < 80 * 60:
-            logger.info('The url contains a video that is shorter than 80 minutes.'
+        if duration is not None and duration < 55 * 60:
+            logger.info('The url contains a video that is shorter than 55 minutes.'
                         f' That is likely not a tatort url. Skipping: {url} ')
             return None
 
@@ -126,9 +129,16 @@ class WikipediaWrapper:
                 id_candidates.append(self.episodes[self.title == title_].index[0])
             else:
                 # try to use description to disambiguate
-                for match_, score in process.extract(descr, set(self.meta_data)):
-                    if score > self.desc_thresh:
-                        id_candidates.append(self.episodes[self.meta_data == match_].index[0])
+                # if team in description of only one match -> surely correct
+                entries_with_title = (
+                    self.episodes[self.title == title_]
+                        .assign(recall=lambda df: df.meta_data.apply(
+                        lambda bag_of_words: len(bag_of_words & to_bag_of_words([descr])) / len(bag_of_words)
+                    )))
+
+                for id_, row in entries_with_title.iterrows():
+                    if row.recall > self.desc_thresh:
+                        id_candidates.append(row.index)
 
         return id_candidates
 

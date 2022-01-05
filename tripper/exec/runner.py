@@ -46,28 +46,29 @@ class Runner:
                     downloads[tid] = (tatort.url, model.filename(tid))
             else:
                 check_downloads.append(
-                    (tatort.url, (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:100]}')))
+                    (tatort.url, (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:100]}.mp4')))
 
         if downloads:
             logger.info(f'Start downloading {len(downloads)} movies')
             target = Path(folders['tatort_store_prefix']) / folders['output']
             for _, (url, dest) in tqdm(sorted(downloads.items(), key=itemgetter(0))):
-                self.download(url, target / dest)
+                self.download(url, target / dest.replace('/', '⧸'))
 
         if check_downloads:
             logger.info(f'Start downloading {len(check_downloads)} check/error movies')
             target = Path(folders['tatort_store_prefix']) / folders['error']
             for url, dest in tqdm(check_downloads):
-                self.download(url, target / dest)
+                self.download(url, target / dest.replace('/', '⧸'), overwrite=False)
 
-    def download(self, url, dest: Path):
+    def download(self, url, dest: Path, overwrite=True):
         dest.parent.mkdir(parents=True, exist_ok=True)
         if self.dry_run:  # noqa
             logger.info(f'would create {dest} from {url}')
         else:
-            # remove old finished files (happens if we download, because of higher quality)
-            # fortunately this will not remove partial files, which youtube-dl will continue!
-            dest.unlink(missing_ok=True)
+            if overwrite:
+                # remove old finished files (happens if we download, because of higher quality)
+                # fortunately this will not remove partial files, which youtube-dl will continue!
+                dest.unlink(missing_ok=True)
             ydl_opts = dict(outtmpl=str(dest), retries=5,
                             external_downloader_args=['-hide_banner', '-loglevel', 'panic'])
             try:

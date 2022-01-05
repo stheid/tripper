@@ -27,7 +27,7 @@ class Runner:
 
         logger.info('Retrieving mediathek and wikipedia data')
         processed = dict()
-        model = WikipediaWrapper(cache_dir=folders['cache'], final_tatortdir=folders['final'],
+        model = WikipediaWrapper(cache_dir=folders['cache'], final_tatortdirs=[folders['final'], folders['output']],
                                  pred_thresholds=pred_thresholds)
         tatorte = MediathekWrapper(cache_dir=folders['cache'], mediathek_query_size=mediathek['query_size'])
 

@@ -1,8 +1,9 @@
 import logging
 import re
 from collections import Counter
+from functools import reduce
 from importlib import resources
-from operator import itemgetter
+from operator import itemgetter, or_
 from pathlib import Path
 from shutil import which
 from subprocess import check_output, CalledProcessError
@@ -22,12 +23,14 @@ logger = logging.getLogger(__name__)
 
 
 class WikipediaWrapper:
-    def __init__(self, cache_dir: str, final_tatortdir: str, pred_thresholds: dict):
+    def __init__(self, cache_dir: str, final_tatortdirs: List[str], pred_thresholds: dict):
         self.cache_dir = Path(cache_dir)
         self.title_thresh = pred_thresholds['title_thresh']
         self.desc_thresh = pred_thresholds['desc_thresh']
-        self.size_of_tatort = {int(re.match('(\d+)', p.name)[0]): p.stat().st_size for p in
-                               Path(final_tatortdir).glob('*.mp4')}
+        self.size_of_tatort = reduce(lambda d1, d2: {**d1, **d2},
+                                     [{int(re.match('(\d+)', p.name)[0]): p.stat().st_size for p in
+                                       Path(final_tatortdir).glob('*.mp4')} for final_tatortdir in
+                                      final_tatortdirs])
         self.episodes = self._get_wiki_tatortlist()
         self.filesize_estimator = FilesizeEstimator()
 
@@ -133,7 +136,7 @@ class WikipediaWrapper:
                 entries_with_title = (
                     self.episodes[self.title == title_]
                         .assign(recall=lambda df: df.meta_data.apply(
-                        lambda bag_of_words: len(bag_of_words & to_bag_of_words([descr])) / len(bag_of_words)
+                        lambda bag_of_words: len(bag_of_words & to_bag_of_words([descr])) / (len(bag_of_words) + 1e-10)
                     )))
 
                 for id_, row in entries_with_title.iterrows():

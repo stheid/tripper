@@ -39,7 +39,8 @@ $> tripper
 Setting persistent systemd.service
 ----------------------------------
 
-`/etc/systemd/system/tripper.service`
+`/etc/systemd/system/tripper.service` [doc](https://man.archlinux.org/man/systemd.service.5)
+
 ```
 [Unit]
 Description=Downloading Tatort collection
@@ -51,7 +52,7 @@ WorkingDirectory=<path where your collection resides>
 ExecStart=/home/<user>/.local/bin/tripper # or whatever "which tripper" returns
 ```
 
-</br>`/etc/systemd/system/tripper.timer`
+</br>`/etc/systemd/system/tripper.timer` [doc](https://man.archlinux.org/man/systemd.timer.5)
 ```
 [Unit]
 Description=Downloading Tatort collection
@@ -73,10 +74,6 @@ $> systemctl enable tripper.timer
 # verify using:
 $> systemctl list-timers | grep "tripper\|UNIT"
 ```
-
-[documentation systemd.service](https://man.archlinux.org/man/systemd.service.5)
-
-[documentation systemd.timer](https://man.archlinux.org/man/systemd.timer.5)
 
 
 Roadmap

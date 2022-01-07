@@ -39,10 +39,8 @@ $> tripper
 Setting persistent systemd.service
 ----------------------------------
 
-
+`/etc/systemd/system/tripper.service`
 ```
-/etc/systemd/system/tripper.service
-———————————————————————————————————
 [Unit]
 Description=Downloading Tatort collection
 
@@ -54,13 +52,12 @@ ExecStart=/home/<user>/.local/bin/tripper # or whatever "which tripper" returns
 Work
 ```
 
+</br>`/etc/systemd/system/tripper.timer`
 ```
-/etc/systemd/system/tripper.timer
-———————————————————————————————————
 [Unit]
 Description=Downloading Tatort collection
 
-[Service]
+[Timer]
 OnCalendar=Sun *-*-* 20:15:00
 Persistent=true
 
@@ -75,7 +72,7 @@ $> systemctl daemon-reload
 $> systemctl start tripper.timer
 $> systemctl enable tripper.timer
 # verify using:
-$> systemctl list-timers
+$> systemctl list-timers | grep "tripper\|UNIT"
 ```
 
 [documentation systemd.service](https://man.archlinux.org/man/systemd.service.5)
@@ -87,5 +84,3 @@ Roadmap
 -------
 
 1. Add docker image
-
-

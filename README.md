@@ -61,7 +61,7 @@ Work
 Description=Downloading Tatort collection
 
 [Service]
-OnCalendar=Mon *-*-* 20:15:00
+OnCalendar=Sun *-*-* 20:15:00
 Persistent=true
 
 [Install]

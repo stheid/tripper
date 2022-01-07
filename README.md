@@ -49,7 +49,6 @@ Type=oneshot
 User=<user> # if this line is omited the service will be run as root
 WorkingDirectory=<path where your collection resides>
 ExecStart=/home/<user>/.local/bin/tripper # or whatever "which tripper" returns
-Work
 ```
 
 </br>`/etc/systemd/system/tripper.timer`

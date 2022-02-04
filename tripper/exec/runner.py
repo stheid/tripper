@@ -52,7 +52,7 @@ class Runner:
             target = Path(folders['tatort_store_prefix']) / folders['output']
             for _, (tatort, dest) in tqdm(sorted(downloads.items(), key=itemgetter(0)), disable=None):
                 self.download(tatort.url, target / dest.replace('/', '⧸'))
-                self.download(tatort.url_subtitle, target / dest.replace('/', '⧸')[:-3] + '.vtt')
+                self.download(tatort.url_subtitle, target / (dest.replace('/', '⧸')[:-3] + 'vtt'))
 
         if check_downloads:
             logger.info(f'Start downloading {len(check_downloads)} check/error movies')

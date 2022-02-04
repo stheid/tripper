@@ -36,8 +36,7 @@ class MediathekWrapper:
             mediathek = (
                 df.set_index('id')
                     .assign(url=lambda df_: df_.url_video_hd.replace('', pd.NA).fillna(df_.url_video))
-                    .drop(columns=['url_video', 'url_video_low', 'url_video_hd', 'url_website', 'url_subtitle',
-                                   'filmlisteTimestamp'])
+                    .drop(columns=['url_video', 'url_video_low', 'url_video_hd', 'url_website', 'filmlisteTimestamp'])
                     # the sorting is important, so that ARD is always favoured when dropping duplicate (A is the first character)
                     .sort_values(["channel"])
                     .drop(columns=['channel', 'duration'])
@@ -61,7 +60,7 @@ class MediathekWrapper:
                             .replace(" ?\(\d+\)$", "", regex=True)
                             .replace("^«(?P<x>[\w\s]*)» – [\S\s]*$", "\g<x>", regex=True)
                             )
-                [['title', 'description', 'url', 'timestamp']]
+                [['title', 'description', 'url', 'url_subtitle', 'timestamp']]
             )
 
             mediathek.to_csv(path)  # noqa

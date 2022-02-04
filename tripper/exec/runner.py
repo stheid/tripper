@@ -43,16 +43,16 @@ class Runner:
                 new_size = model.get_size_if_missing_or_smaller(tid, tatort.url)
                 if new_size is not None and new_size > processed.get(tid, 0):
                     processed[tid] = new_size
-                    downloads[tid] = (tatort.url, model.filename(tid))
+                    downloads[tid] = (tatort, model.filename(tid))
             else:
-                check_downloads.append(
-                    (tatort.url, (','.join(map(str, ids)) + f' {tatort.title} – {tatort.description[:100]}.mp4')))
+                check_downloads.append((tatort.url, f'{tatort.title} – {tatort.description[:100]}.mp4'))
 
         if downloads:
             logger.info(f'Start downloading {len(downloads)} movies')
             target = Path(folders['tatort_store_prefix']) / folders['output']
-            for _, (url, dest) in tqdm(sorted(downloads.items(), key=itemgetter(0))):
-                self.download(url, target / dest.replace('/', '⧸'))
+            for _, (tatort, dest) in tqdm(sorted(downloads.items(), key=itemgetter(0)), disable=None):
+                self.download(tatort.url, target / dest.replace('/', '⧸'))
+                self.download(tatort.url_subtitle, target / dest.replace('/', '⧸')[:-3] + '.vtt')
 
         if check_downloads:
             logger.info(f'Start downloading {len(check_downloads)} check/error movies')

@@ -174,7 +174,7 @@ class FilesizeEstimator:
                                    f' The url is likely geoblocked! Skipping: {url}')
                 self.succesfull_methods['ffmpeg'] = True
                 return tuple([float(entry) for entry in result.split(',')])  # noqa
-            except CalledProcessError as e:
+            except (CalledProcessError, ValueError) as e:
                 logger.warning(f'Calling ffprobe failed. Maybe a 404 error. Skipping {url}')
                 return None, None
 

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='tripper',
-    version='0.1.13',
+    version='0.1.14',
     packages=find_packages(include=['tripper', 'tripper.*']),
     include_package_data=True,
     author='Stefan Heid',
@@ -22,6 +22,7 @@ setup(
                       ],
     classifiers=[
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.8',
         'Development Status :: 4 - Beta',

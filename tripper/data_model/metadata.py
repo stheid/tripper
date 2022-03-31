@@ -14,6 +14,7 @@ from urllib.request import urlopen
 import pandas as pd
 import requests
 import yaml
+from Levenshtein import distance
 from thefuzz import process
 
 from tripper.util.path import older
@@ -108,7 +109,14 @@ class WikipediaWrapper:
         """
         titles_multiset = Counter(self.title)
 
+        # consider all id, whos title has levenstein distance < 2
+        # if unique return already
+        # otherwise narrow down by: discard where neighter city nor any inspector member is in the description
+        # return all remaining ids
+
         # there should be one and only closely matching title
+        # distance
+
         title_candidates = []
         if title in titles_multiset:
             # title is an exact match

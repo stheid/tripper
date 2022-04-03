@@ -1,7 +1,9 @@
 import logging
+import re
 from operator import itemgetter
 from pathlib import Path
 
+from requests import get
 from tqdm import tqdm
 from youtube_dl import YoutubeDL
 from youtube_dl.utils import DownloadError
@@ -52,7 +54,13 @@ class Runner:
             target = Path(folders['tatort_store_prefix']) / folders['output']
             for _, (tatort, dest) in tqdm(sorted(downloads.items(), key=itemgetter(0), reverse=True), disable=None):
                 self.download(tatort.url, target / dest.replace('/', '⧸'))
-                self.download(tatort.url_subtitle, target / (dest.replace('/', '⧸')[:-3] + 'vtt'))
+
+                # subtitle
+                r = get(tatort.url_subtitle)
+                mapping = [('.*text/xml.*', 'ttml'), ('.*', 'vtt')]
+                suffix = [suff for pat, suff in mapping if re.match(pat, r.headers['content-type'])][0]
+                with open(target / (dest.replace('/', '⧸')[:-3] + suffix), 'w') as f:
+                    print(r.text, file=f)
 
         if check_downloads:
             logger.info(f'Start downloading {len(check_downloads)} check/error movies')

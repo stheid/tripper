@@ -15,6 +15,3 @@ runner:
 
   mediathek:
     query_size: 1000
-
-sheduler:
-  null

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='tripper',
-    version='0.1.14',
+    version='0.1.15',
     packages=find_packages(include=['tripper', 'tripper.*']),
     include_package_data=True,
     author='Stefan Heid',

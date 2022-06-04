@@ -20,14 +20,14 @@ Special thanks to the folkes at [mediathekview](https://mediathekviewweb.de) for
 Installation
 ------------
 
-```
-$> apt install ffmpeg # (or similar commands)
-$> pip install git+https://github.com/stheid/tripper.git
+```bash
+apt install ffmpeg # (or similar commands)
+pip install git+https://github.com/stheid/tripper.git
 ```
 
 to install current development version (or any other branch)
-```
-$> pip install git+https://github.com/stheid/tripper.git@develop
+```bash
+pip install git+https://github.com/stheid/tripper.git@develop
 ```
 
 
@@ -37,8 +37,8 @@ Usage
 
 Adapt the `config.yaml` to your liking and run the program:
 
-```
-$> tripper
+```bash
+tripper
 ```
 
 
@@ -46,8 +46,7 @@ Setting persistent systemd.service
 ----------------------------------
 
 `/etc/systemd/system/tripper.service` [doc](https://man.archlinux.org/man/systemd.service.5)
-
-```
+```.service
 [Unit]
 Description=Downloading Tatort collection
 
@@ -59,7 +58,7 @@ ExecStart=/home/<user>/.local/bin/tripper # or whatever "which tripper" returns
 ```
 
 </br>`/etc/systemd/system/tripper.timer` [doc](https://man.archlinux.org/man/systemd.timer.5)
-```
+```.service
 [Unit]
 Description=Downloading Tatort collection
 
@@ -72,12 +71,12 @@ WantedBy=timers.target
 ```
 
 Execute the following lines as root
-```
-$> su
-$> systemctl daemon-reload
-$> systemctl enable --now tripper.timer
+```bash
+su
+systemctl daemon-reload
+systemctl enable --now tripper.timer
 # verify using:
-$> systemctl list-timers | grep "tripper\|UNIT"
+systemctl list-timers | grep "tripper\|UNIT"
 ```
 
 Manually run systemd.service or debug service

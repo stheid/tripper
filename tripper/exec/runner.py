@@ -3,7 +3,7 @@ import re
 from operator import itemgetter
 from pathlib import Path
 
-from requests import get
+from requests import get, RequestException
 from tqdm import tqdm
 from youtube_dl import YoutubeDL
 from youtube_dl.utils import DownloadError
@@ -55,12 +55,15 @@ class Runner:
             for _, (tatort, dest) in tqdm(sorted(downloads.items(), key=itemgetter(0), reverse=True), disable=None):
                 self.download(tatort.url, target / dest.replace('/', '⧸'))
 
-                # subtitle
-                r = get(tatort.url_subtitle)
-                mapping = [('.*text/xml.*', 'ttml'), ('.*', 'vtt')]
-                suffix = [suff for pat, suff in mapping if re.match(pat, r.headers['content-type'])][0]
-                with open(target / (dest.replace('/', '⧸')[:-3] + suffix), 'w') as f:
-                    print(r.text, file=f)
+                try:
+                    # subtitle
+                    r = get(tatort.url_subtitle)
+                    mapping = [('.*text/xml.*', 'ttml'), ('.*', 'vtt')]
+                    suffix = [suff for pat, suff in mapping if re.match(pat, r.headers['content-type'])][0]
+                    with open(target / (dest.replace('/', '⧸')[:-3] + suffix), 'w') as f:
+                        print(r.text, file=f)
+                except RequestException:
+                    logger.warning(f'Was not able to download subtitle for {tatort.title}')
 
         if check_downloads:
             logger.info(f'Start downloading {len(check_downloads)} check/error movies')

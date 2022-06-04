@@ -69,8 +69,7 @@ Execute the following lines as root
 ```
 $> su
 $> systemctl daemon-reload
-$> systemctl start tripper.timer
-$> systemctl enable tripper.timer
+$> systemctl enable --now tripper.timer
 # verify using:
 $> systemctl list-timers | grep "tripper\|UNIT"
 ```

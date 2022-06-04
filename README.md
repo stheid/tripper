@@ -27,7 +27,7 @@ $> pip install git+https://github.com/stheid/tripper.git
 
 to install current development version (or any other branch)
 ```
-$> pip install git+https://github.com/stheid/tripper.git@**develop**
+$> pip install git+https://github.com/stheid/tripper.git@develop
 ```
 
 

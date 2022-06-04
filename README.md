@@ -22,8 +22,14 @@ Installation
 
 ```
 $> apt install ffmpeg # (or similar commands)
-$> pip install git+git://github.com/stheid/tripper.git
+$> pip install git+https://github.com/stheid/tripper.git
 ```
+
+to install current development version (or any other branch)
+```
+$> pip install git+https://github.com/stheid/tripper.git@**develop**
+```
+
 
 
 Usage
@@ -74,6 +80,18 @@ $> systemctl enable --now tripper.timer
 $> systemctl list-timers | grep "tripper\|UNIT"
 ```
 
+Manually run systemd.service or debug service
+---------------------------------------------
+
+Run tripper service
+```
+sudo systemctl start --no-block tripper 
+```
+
+Inspect complete service logs
+```
+journalctl -b -u tripper
+```
 
 Roadmap
 -------

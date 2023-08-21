@@ -35,31 +35,37 @@ class MediathekWrapper:
             logger.info('Processed data from mediathekview')
             mediathek = (
                 df.set_index('id')
-                    .assign(url=lambda df_: df_.url_video_hd.replace('', pd.NA).fillna(df_.url_video))
-                    .drop(columns=['url_video', 'url_video_low', 'url_video_hd', 'url_website', 'filmlisteTimestamp'])
-                    # the sorting is important, so that ARD is always favoured when dropping duplicate (A is the first character)
-                    .sort_values(["channel"])
-                    .drop(columns=['channel', 'duration'])
-                    .drop_duplicates(subset='url')
-                    .query(
+                .assign(url=lambda df_: df_.url_video_hd.replace('', pd.NA).fillna(df_.url_video))
+                .drop(columns=['url_video', 'url_video_low', 'url_video_hd', 'url_website', 'filmlisteTimestamp'])
+                # the sorting is important, so that ARD is always favoured when dropping duplicate (A is the first character)
+                .sort_values(["channel"])
+                .drop(columns=['channel', 'duration'])
+                .drop_duplicates(subset='url')
+                .query(
                     "(topic.str.contains('Tatort') or title.str.contains('Tatort'))"
-                    " and not topic.str.contains('AD | Tatort') and not topic.str.contains('Audiodeskription')"
-                    " and not (title.str.contains('Hörfassung') or title.str.contains('Audiodeskription')"
-                    " or title.str.endswith('(AD)') or title.str.startswith('AD | ')"
-                    " or title.str.contains('Gebärdensprache'))"
-                    " and not url.str.contains('hallohessen')"
+                    " and not topic.str.contains('AD | Tatort')"
+                    " and not topic.str.contains('Audiodeskription')"
                     " and not topic.str.contains('Einstein')"
-                    " and not topic.str.contains('DOK') and not topic.str.contains('Doku')"
-                    " and not topic.str.contains('Polizeiruf 110') and not title.str.contains('Polizeiruf 110')",
+                    " and not topic.str.contains('DOK')"
+                    " and not topic.str.contains('Doku')"
+                    " and not topic.str.contains('Polizeiruf 110')"
+                    " and not title.str.contains('Polizeiruf 110')"
+                    " and not title.str.contains('Hörfassung')"
+                    " and not title.str.contains('Audiodeskription')"
+                    " and not title.str.contains('klare Sprache')"
+                    " and not title.str.endswith('(AD)')"
+                    " and not title.str.startswith('AD | ')"
+                    " and not title.str.contains('Gebärdensprache')"
+                    " and not url.str.contains('hallohessen')",
                     engine="python")
-                    .assign(title=lambda df: df.title.str.replace("^Tatort: ", "", regex=True)
-                            .replace("^Tatort (-|–) ", "", regex=True)
-                            .replace(" \| tatort$", "", regex=True)
-                            .replace(" ?\(ab \d+ Jahre\)$", "", regex=True)
-                            .replace(" ?\(FSK \d+\)$", "", regex=True)
-                            .replace(" ?\(\d+\)$", "", regex=True)
-                            .replace("^«(?P<x>[\w\s]*)» – [\S\s]*$", "\g<x>", regex=True)
-                            )
+                .assign(title=lambda df: df.title.str.replace("^Tatort: ", "", regex=True)
+                        .replace("^Tatort (-|–) ", "", regex=True)
+                        .replace(" \| tatort$", "", regex=True)
+                        .replace(" ?\(ab \d+ Jahre\)$", "", regex=True)
+                        .replace(" ?\(FSK \d+\)$", "", regex=True)
+                        # .replace(" ?\(\d+\)$", "", regex=True)
+                        .replace("^«(?P<x>[\w\s]*)» – [\S\s]*$", "\g<x>", regex=True)
+                        )
                 [['title', 'description', 'url', 'url_subtitle', 'timestamp']]
             )
 

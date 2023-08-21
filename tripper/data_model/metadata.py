@@ -14,7 +14,6 @@ from urllib.request import urlopen
 import pandas as pd
 import requests
 import yaml
-from Levenshtein import distance
 from thefuzz import process
 
 from tripper.util.path import older
@@ -52,16 +51,15 @@ class WikipediaWrapper:
 
             episodes = (
                 pd.read_html(req.text)[0]
-                    .replace('\s', ' ', regex=True)
-                    # remove the secondary table header: series "Folge" contains literal "Folge"
-                    .query('Folge != "Folge"')
-                    .rename(columns=dict(Folge='id', Titel='title', Ermittler='team', Erstausstrahlung='airing_date',
-                                         City='city', Besonderheiten='notes'))
-                    .assign(city=lambda df: [_predict_city(team) for team in df.team])
-                    .assign(id=lambda df: df.id.astype(int))
+                .replace('\s', ' ', regex=True)
+                # remove the secondary table header: series "Folge" contains literal "Folge"
+                .query('Folge != "Folge"')
+                .rename(columns=dict(Folge='id', Titel='title', Ermittler='team', Erstausstrahlung='airing_date',
+                                     City='city', Besonderheiten='notes'))
+                .assign(city=lambda df: [_predict_city(team) for team in df.team])
+                .assign(id=lambda df: df.id.astype(int))
                 [['id', 'title', 'team', 'airing_date', 'city', 'notes']]
-                    .assign(title=lambda df: df.title.str.replace(" ?\([\d\D]*\)$", "", regex=True))
-                    .assign(meta_data=lambda df:
+                .assign(meta_data=lambda df:
                 df.apply(lambda row: to_bag_of_words(filter(lambda x: bool(x) and isinstance(x, str),
                                                             [(re.search('(\d{4})', row.airing_date) or [
                                                                 ''])[0],
@@ -128,7 +126,13 @@ class WikipediaWrapper:
             for i, (title_, score) in enumerate(fuzzy_matches):
                 if score > self.title_thresh or score == first_score:
                     # take the first of the list and all others that have a higher score than the threshold
-                    title_candidates.append(title_)
+                    # if two titles only differ by writings in brackets (like "Teil 1", "Teil 2") than the most likely one is used
+                    # this is a heuristic that will probably select the one with the correct version number
+                    # this heuristic is only applied when the scores differ!
+                    if i == 0 or (not re.sub(" ?\([\d\D]*\)$", "", title_) == re.sub(" ?\([\d\D]*\)$", "",
+                                                                                     title_candidates[0])
+                                  and score != first_score):
+                        title_candidates.append(title_)
                 else:
                     # the list is sorted, so we can break if the score no longer exceeds the threshold
                     break
@@ -143,7 +147,7 @@ class WikipediaWrapper:
                 # if team in description of only one match -> surely correct
                 entries_with_title = (
                     self.episodes[self.title == title_]
-                        .assign(recall=lambda df: df.meta_data.apply(
+                    .assign(recall=lambda df: df.meta_data.apply(
                         lambda bag_of_words: len(bag_of_words & to_bag_of_words([descr])) / (len(bag_of_words) + 1e-10)
                     )))
 
@@ -175,7 +179,7 @@ class FilesizeEstimator:
                 result = (
                     check_output(
                         ['ffprobe', url, '-show_entries', 'format=size,duration', '-v', 'quiet', '-of', 'csv=p=0'])
-                        .decode('utf-8')
+                    .decode('utf-8')
                 )
                 if not result:
                     logger.warning('ffprobe did not return filesize and duration estimate.'

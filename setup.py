@@ -8,7 +8,7 @@ setup(
     author='Stefan Heid',
     author_email='stefan.heid@upb.de',
     description='Download utility to create and maintain local collection of Tatort Episodes published in the D,A,CH - mediathek',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     entry_points={'console_scripts': [
         'tripper = tripper.cli:main ',
     ]},

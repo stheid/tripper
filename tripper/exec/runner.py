@@ -47,7 +47,7 @@ class Runner:
                     processed[tid] = new_size
                     downloads[tid] = (tatort, model.filename(tid))
             else:
-                check_downloads.append((tatort.url, f'{tatort.title} – {tatort.description[:100]}.mp4'))
+                check_downloads.append((tatort.url, f'{ids} {tatort.title} – {tatort.description[:100]}.mp4'))
 
         if downloads:
             logger.info(f'Start downloading {len(downloads)} movies')

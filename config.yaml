@@ -4,7 +4,7 @@ runner:
 
   pred_thresholds:
     title_thresh: 90
-    desc_thresh: 20
+    desc_thresh: 10
 
   folders:
     cache: cache

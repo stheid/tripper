@@ -53,6 +53,7 @@ class MediathekWrapper:
                     " and not title.str.contains('Hörfassung')"
                     " and not title.str.contains('Audiodeskription')"
                     " and not title.str.contains('klare Sprache')"
+                    " and not title.str.contains('Klare Sprache')"
                     " and not title.str.endswith('(AD)')"
                     " and not title.str.startswith('AD | ')"
                     " and not title.str.contains('Gebärdensprache')"

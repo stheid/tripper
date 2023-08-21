@@ -103,9 +103,8 @@ class WikipediaWrapper:
         try to predict the tatort id for the given title and description.
         on
 
-        :return: id, filename, prob: id of the tatort and the filename it it should be stored
+        :return: id, filename, prob: id of the tatort and the filename it should be stored
         """
-        titles_multiset = Counter(self.title)
 
         # consider all id, whos title has levenstein distance < 2
         # if unique return already
@@ -116,7 +115,7 @@ class WikipediaWrapper:
         # distance
 
         title_candidates = []
-        if title in titles_multiset:
+        if title in self.title:
             # title is an exact match
             title_candidates.append(title)
         else:
@@ -129,14 +128,20 @@ class WikipediaWrapper:
                     # if two titles only differ by writings in brackets (like "Teil 1", "Teil 2") than the most likely one is used
                     # this is a heuristic that will probably select the one with the correct version number
                     # this heuristic is only applied when the scores differ!
-                    if i == 0 or (not re.sub(" ?\([\d\D]*\)$", "", title_) == re.sub(" ?\([\d\D]*\)$", "",
-                                                                                     title_candidates[0])
-                                  and score != first_score):
+                    if i == 0 or \
+                            not (re.sub(" ?\([\d\D]*\)$", "", title_) ==
+                                 re.sub(" ?\([\d\D]*\)$", "", title_candidates[0])
+                                 and score != first_score):
                         title_candidates.append(title_)
                 else:
                     # the list is sorted, so we can break if the score no longer exceeds the threshold
                     break
 
+        if len(title_candidates) == 1:
+            return [self.episodes[self.title == title_candidates[0]].index[0]]
+
+        title_candidates = Counter(pd.Series(title_candidates).str.replace(" ?\([\d\D]*\)$", "", regex=True))
+        titles_multiset = Counter(self.title.str.replace(" ?\([\d\D]*\)$", "", regex=True))
         id_candidates = []
         for title_ in title_candidates:
             if titles_multiset.get(title_) == 1:
@@ -146,14 +151,15 @@ class WikipediaWrapper:
                 # try to use description to disambiguate
                 # if team in description of only one match -> surely correct
                 entries_with_title = (
-                    self.episodes[self.title == title_]
+                    self.episodes[
+                        self.title.str.replace(" ?\([\d\D]*\)$", "", regex=True) == title_]
                     .assign(recall=lambda df: df.meta_data.apply(
                         lambda bag_of_words: len(bag_of_words & to_bag_of_words([descr])) / (len(bag_of_words) + 1e-10)
                     )))
 
                 for id_, row in entries_with_title.iterrows():
-                    if row.recall > self.desc_thresh:
-                        id_candidates.append(row.index)
+                    if row.recall * 100 > self.desc_thresh:
+                        id_candidates.append(id_)
 
         return id_candidates
 
